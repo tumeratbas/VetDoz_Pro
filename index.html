@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VetDoz">
+  <title>VetDoz - Klinik Doz Hesaplama</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            navy: {
+              950: '#060a12',
+              900: '#0a0f1d',
+              850: '#0e172a',
+              800: '#15213b',
+              700: '#1e2e4f',
+              600: '#2a3f68',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #060a12;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(30, 46, 79, 0.35) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(10, 15, 29, 0.8) 0px, transparent 50%);
+      background-attachment: fixed;
+      font-family: 'Inter', -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .glass-panel {
+      background: rgba(14, 23, 42, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-input {
+      background: rgba(6, 10, 18, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .glass-input:focus-within {
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 0 20px rgba(30, 46, 79, 0.4);
+    }
+
+    /* Hide number input spinners */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none;
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+
+    .num-tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .transition-all-custom {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-slate-700 selection:text-white">
+
+  <!-- Main Container -->
+  <div class="w-full max-w-lg mx-auto px-4 pt-6 pb-12 flex-1 flex flex-col justify-between">
+    
+    <div>
+      <!-- Header Section -->
+      <header class="flex items-center justify-between mb-6 pt-2 px-1">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-700 via-navy-800 to-navy-950 flex items-center justify-center border border-white/10 shadow-lg shadow-black/40">
+            <i class="fa-solid font-bold fa-notes-medical text-slate-200 text-lg"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+              VetDoz Pro
+            </h1>
+            <p class="text-xs font-medium text-slate-400">Veteriner Doz & Klinik Asistanı</p>
+          </div>
+        </div>
+
+        <div class="px-3 py-1 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-md shadow-inner">
+          <span class="text-[11px] font-semibold tracking-wider uppercase text-slate-300 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse"></span>
+            v2.5
+          </span>
+        </div>
+      </header>
+
+      <!-- Step 1: Species & Weight Selection -->
+      <section class="glass-panel rounded-3xl p-5 mb-5 shadow-2xl relative overflow-hidden">
+        
+        <!-- Species Selector -->
+        <div class="mb-5">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5 px-1">
+            Hasta Türü
+          </label>
+          <div class="grid grid-cols-2 gap-2.5 p-1 bg-black/30 rounded-2xl border border-white/5">
+            <button id="btn-kedi" onclick="setSpecies('kedi')" 
+              class="species-btn py-3 px-4 rounded-xl font-medium text-sm flex items-center justify-center gap-2.5 transition-all-custom bg-white/5 text-slate-300 hover:bg-white/10 border border-transparent">
+              <i class="fa-solid fa-cat text-base"></i>
+              <span>Kedi</span>
+            </button>
+            <button id="btn-kopek" onclick="setSpecies('kopek')" 
+              class="species-btn py-3 px-4 rounded-xl font-medium text-sm flex items-center justify-center gap-2.5 transition-all-custom bg-white/5 text-slate-300 hover:bg-white/10 border border-transparent">
+              <i class="fa-solid fa-dog text-base"></i>
+              <span>Köpek</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Weight Input -->
+        <div>
+          <div class="flex justify-between items-center mb-2.5 px-1">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Dostumuzun Ağırlığı
+            </label>
+            <span class="text-xs text-slate-400 font-medium">kg cinsinden</span>
+          </div>
+
+          <div class="glass-input rounded-2xl p-2 flex items-center justify-between gap-2 transition-all-custom">
+            <!-- Minus Btn -->
+            <button onclick="adjustWeight(-0.1)" class="w-11 h-11 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white font-bold text-lg flex items-center justify-center active:scale-95 transition-all border border-white/10">
+              <i class="fa-solid fa-minus text-xs"></i>
+            </button>
+
+            <!-- Numeric Input Field -->
+            <div class="flex-1 flex items-center justify-center min-w-0 px-2">
+              <input type="number" id="weight" step="0.01" min="0" placeholder="0.00" oninput="calculate()"
+                class="w-full bg-transparent text-center font-bold text-2xl text-white outline-none num-tabular placeholder-slate-600 min-w-0">
+              <span class="text-slate-400 font-semibold text-sm ml-1 select-none">kg</span>
+            </div>
+
+            <!-- Plus Btn -->
+            <button onclick="adjustWeight(0.1)" class="w-11 h-11 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white font-bold text-lg flex items-center justify-center active:scale-95 transition-all border border-white/10">
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="flex items-center gap-1.5 mt-3 overflow-x-auto pb-1 no-scrollbar">
+            <span class="text-[11px] font-medium text-slate-500 mr-1 shrink-0">Hızlı:</span>
+            <button onclick="setWeightPreset(2.5)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-medium border border-white/5 shrink-0 transition-all">2.5 kg</button>
+            <button onclick="setWeightPreset(4.0)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-medium border border-white/5 shrink-0 transition-all">4.0 kg</button>
+            <button onclick="setWeightPreset(8.5)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-medium border border-white/5 shrink-0 transition-all">8.5 kg</button>
+            <button onclick="setWeightPreset(15.0)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-medium border border-white/5 shrink-0 transition-all">15 kg</button>
+            <button onclick="setWeightPreset(25.0)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-medium border border-white/5 shrink-0 transition-all">25 kg</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Step 2: Custom Searchable Drug List -->
+      <section class="glass-panel rounded-3xl p-5 mb-5 shadow-2xl relative z-30">
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5 px-1">
+          İlaç Seçimi & Arama
+        </label>
+
+        <!-- Search Bar -->
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+          <input type="text" id="searchInput" placeholder="İlaç adı veya kategori yazın..." 
+            oninput="filterDrugs()" onfocus="openDrugList()"
+            class="w-full glass-input rounded-2xl pl-11 pr-10 py-3.5 text-sm text-white placeholder-slate-500 outline-none transition-all-custom">
+          <button id="clearSearch" onclick="clearSearchInput()" class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs flex items-center justify-center transition-colors">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Custom Glass Dropdown List -->
+        <div id="drugDropdown" class="max-h-60 overflow-y-auto space-y-1.5 pr-1 hidden pt-3 custom-scrollbar transition-all-custom">
+          <!-- JS populated drug cards -->
+        </div>
+      </section>
+
+      <!-- Result Display Card -->
+      <section id="resultCard" class="hidden glass-panel rounded-3xl p-6 mb-5 border-l-4 border-l-slate-300 shadow-2xl relative overflow-hidden transition-all-custom">
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <span id="resCategory" class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-white/10 text-slate-300 mb-1 border border-white/10">
+              Kategori
+            </span>
+            <h2 id="resDrugName" class="text-xl font-bold text-white tracking-tight">İlaç Adı</h2>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300">
+            <i class="fa-solid fa-vial"></i>
+          </div>
+        </div>
+
+        <!-- Primary Calculation Display -->
+        <div class="bg-black/40 rounded-2xl p-4 mb-3 border border-white/5">
+          <div class="text-xs font-medium text-slate-400 mb-1">Hesaplanan Dozaj</div>
+          <div id="resDose" class="text-2xl font-black text-white tracking-tight num-tabular">
+            0.00 mg
+          </div>
+        </div>
+
+        <!-- Frequency & Notes -->
+        <div class="space-y-2">
+          <div id="resFreqBox" class="flex items-center gap-2 text-xs font-semibold text-slate-300 bg-white/5 px-3 py-2 rounded-xl border border-white/5">
+            <i class="fa-regular fa-clock text-slate-400"></i>
+            <span id="resFreq">Kullanım sıklığı belirtilmemiş</span>
+          </div>
+
+          <div id="resNoteBox" class="hidden bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-200/90 leading-relaxed">
+            <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-400"></i>
+            <span id="resNote"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Clinical Quick Guide -->
+      <section class="glass-panel rounded-3xl p-5 mb-6">
+        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 px-1">
+          <i class="fa-solid fa-shield-halved text-slate-400"></i>
+          <span>Kritik Klinik Bilgiler</span>
+        </div>
+        <ul class="text-xs text-slate-400 space-y-2 leading-relaxed px-1">
+          <li class="flex items-start gap-2">
+            <span class="text-slate-200">•</span>
+            <span><strong class="text-slate-200">Monodoks:</strong> Asla kapsül dışı toz olarak verilmemelidir.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-slate-200">•</span>
+            <span><strong class="text-slate-200">Melox:</strong> Maksimum 5 gün kullanılır, ardından Metacam (0.05 mg/kg) idamesine geçilir.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-slate-200">•</span>
+            <span><strong class="text-slate-200">Novosef:</strong> 350'ye bölünerek pratik hesaplama yapılır.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-slate-200">•</span>
+            <span><strong class="text-slate-200">Baytril:</strong> Rutin saha protokolünde q24h olarak uygulanır.</span>
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <!-- Footer Signature -->
+    <footer class="text-center pt-4 border-t border-white/5">
+      <a href="https://www.instagram.com/tmr.medya/" target="_blank" rel="noopener noreferrer" 
+        class="inline-flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-all duration-200 group py-1 px-3 rounded-full hover:bg-white/5">
+        <span>Made by</span>
+        <span class="font-bold text-slate-200 group-hover:text-white underline underline-offset-4 decoration-slate-600 group-hover:decoration-white transition-all">TMR Medya</span>
+        <i class="fa-brands fa-instagram text-slate-400 group-hover:text-pink-400 transition-colors text-sm"></i>
+      </a>
+    </footer>
+
+  </div>
+
+  <script>
+    let currentSpecies = 'kedi';
+    let selectedDrugIndex = null;
+
+    const drugs = [
+      { name: "Lasix (Furosemide)", category: "Diüretik", dose: 2, unit: "mg/kg", freq: "q12h - q24h", note: "" },
+      { name: "Ucran", category: "Diüretik", dose: 2, unit: "mg/kg", freq: "", note: "" },
+      { name: "Dekort (Deksametazon)", category: "Kortikosteroid", dose: 0.3, unit: "mg/kg", freq: "Tek doz / Acil", note: "" },
+      { name: "Atropin", category: "Antikolinerjik", type: "custom", calc: (kg) => (kg * 0.02).toFixed(3) + " cc/ml", freq: "İhtiyaca Göre", note: "Kilo x 0.02 formülü." },
+      { name: "Dopram", category: "Solunum Uyarıcı", type: "custom", calc: (kg) => (kg / 20).toFixed(2) + " cc/ml", freq: "Gerektiğinde", note: "Kilo / 20 formülü." },
+      { name: "Propofol", category: "Anestezik", type: "custom", calc: (kg) => (kg * 0.6).toFixed(2) + " cc/ml", freq: "IV Yavaş İndüksiyon", note: "Kilo x 0.6 formülü." },
+      { name: "Baytril (Enrofloksasin)", category: "Antibiyotik", type: "fixed_volume", ccPerKg: 0.1, freq: "q24h", note: "Gelişmekte olan genç hayvanlarda kıkırdak dokusu gözetilmelidir." },
+      { name: "Cerenia (Maropitant)", category: "Antiemetik", type: "fixed_volume", ccPerKg: 0.1, freq: "q24h", note: "Kusma önleyici." },
+      { name: "Clamox / Synulox", category: "Antibiyotik", type: "fixed_volume", ccPerKg: 0.1, freq: "q24h", note: "2 kg canlı ağırlığa 0.1 cc hesabı." },
+      { name: "Melox (Meloxicam)", category: "NSAID Ağrı Kesici", dose: 0.2, unit: "mg/kg", freq: "İlk Gün Yükleme", note: "Maksimum 5 gün kullanılır, sonrasında Metacam 0.05 mg/kg idameye geçilir." },
+      { name: "Ampsilin", category: "Antibiyotik", dose: 20, unit: "mg/kg", freq: "Sulcid q8h", note: "" },
+      { name: "Alfasid", category: "Antibiyotik", dose: 20, unit: "mg/kg", freq: "q12h", note: "" },
+      { name: "Novosef (Ceftriaxone)", category: "Antibiyotik", doseRange: "35-50", unit: "mg/kg", freq: "q24h", note: "350'ye bölünerek pratik dozlanır." },
+      { name: "Zofran (Ondansetron)", category: "Antiemetik", dose: 0.5, unit: "mg/kg", freq: "q12h", note: "" },
+      { name: "Allenik (Difenhidramin)", category: "Antihistaminik", type: "fixed_volume", ccPerKg: 0.1, freq: "q12h", note: "" },
+      { name: "Contamal (Tramadol)", category: "Analjezik", type: "species_based", kedi: 2, kopek: 4, unit: "mg/kg", freq: "Kedide q24h, Köpekte q8h", note: "" },
+      { name: "Acepromazine", category: "Trankilizan", dose: 0.02, unit: "mg/kg", freq: "Gerektiğinde", note: "Sakinleştirici." },
+      { name: "Klin (Klindamisin)", category: "Antibiyotik", dose: 12.5, unit: "mg/kg", freq: "q12h", note: "1 ml'de 25 mg aktif madde. Şurup: 4 ml'de 600 mg." },
+      { name: "Kontil", category: "Antiparaziter", type: "fixed_volume", ccPerKg: 0.3, freq: "15 Gün Ara İle 2 Doz", note: "" },
+      { name: "Metpamid / Metamid", category: "Antiemetik", type: "custom", calc: (kg) => (kg / 10).toFixed(2) + " cc/ml", freq: "q12h", note: "10 kg canlı ağırlığa 1 cc." },
+      { name: "Blemisin", category: "Onkoloji", dose: 20, unit: "mg/m2", freq: "Protokole Göre", note: "Vücut yüzey alanına (m2) göre hesaplanır." },
+      { name: "Azro (Azitromisin - Kedi)", category: "Antibiyotik", speciesOnly: "kedi", dose: 15, unit: "mg/kg", freq: "q24h", note: "4 kg ağırlığa 1.5 cc denk gelir." },
+      { name: "Infex", category: "Antibiyotik", dose: 10, unit: "mg/kg", freq: "q24h", note: "" },
+      { name: "Metecam", category: "NSAID", dose: 0.05, unit: "mg/kg", freq: "q24h", note: "Melox sonrası geçilen uzun süreli idame dozu." },
+      { name: "Monodoks (Doksisiklin)", category: "Antibiyotik", dose: 5, unit: "mg/kg", freq: "q12h", note: "ÖNEMLİ: Asla kapsül dışı toz olarak verilmemelidir!" },
+      { name: "Keppra (Levetiracetam)", category: "Antikonvülsan", dose: 20, unit: "mg/kg", freq: "Protokole Göre", note: "Akut nöbet anında 40 - 60 mg/kg dozuna çıkılabilir." },
+      { name: "Mopem", category: "Pratik Klinik", type: "fixed_volume", ccPerKg: 0.1, freq: "q12h", note: "" },
+      { name: "Sef (Cefazolin)", category: "Antibiyotik", type: "species_based", kedi: 25, kopek: 35, unit: "mg/kg", freq: "Yüksek Enfeksiyonda q24h 50 mg", note: "3.5 ml sulandırıldığında 1000 mg elde edilir." },
+      { name: "Remeron // Mirtazapin", category: "İştah Uyarım", speciesOnly: "kedi", type: "fixed_text", result: "Kedide Tek Doz Günde 1 (1.88 mg kapsül eczaneden)", freq: "q24h", note: "Kedilerde iştah açıcı protokol." },
+      { name: "Panacur", category: "Antiparaziter", type: "fixed_volume", ccPerKg: 0.3, freq: "Günlük Tekrarlı", note: "" },
+      { name: "Augmentin / Amoklavin", category: "Antibiyotik", type: "species_based", kedi: 25, kopek: 12.5, unit: "mg/kg", freq: "q12h", note: "" },
+      { name: "Amikozit (Amikasin)", category: "Antibiyotik", dose: 10, unit: "mg/kg", freq: "q24h", note: "Nefrotoksisite riski nedeniyle hidrasyon takibi yapılmalıdır." },
+      { name: "Baytril Tablet", category: "Antibiyotik", dose: 5, unit: "mg/kg", freq: "q12h", note: "Oral tablet formu." },
+      { name: "Antepsin (Sukralfat)", category: "Mide Koruyucu", type: "fixed_text", result: "Şurup: 2.5 cc/kg | Tablet: Yarım/kg", freq: "q12h", note: "" },
+      { name: "Melatonin", category: "Hormon / Destek", speciesOnly: "kedi", type: "fixed_text", result: "Kedi İçin Sabit: 3 mg", freq: "q24h", note: "" },
+      { name: "Gs Kuru (FIP)", category: "Antiviral", dose: 10, unit: "mg/kg", freq: "q24h", note: "FIP tedavi protokolü." },
+      { name: "Gs Islak (FIP)", category: "Antiviral", dose: 7.5, unit: "mg/kg", freq: "q24h", note: "FIP tedavi protokolü." },
+      { name: "Folbiol Tablet", category: "Vitamin / Destek", speciesOnly: "kedi", dose: 5, unit: "mg/kg", freq: "q24h (1/4 Tablet)", note: "Folik asit takviyesi." },
+      { name: "Dodeks (B12)", category: "Vitamin", speciesOnly: "kedi", type: "fixed_text", result: "Kedide Sabit: 0.3 cc", freq: "q7d (Haftada 1)", note: "" },
+      { name: "Metronidazol", category: "Antibiyotik", speciesOnly: "kopek", dose: 15, unit: "mg/kg", freq: "q12h", note: "Köpek spesifik." },
+      { name: "Bemix", category: "B Kompleks", speciesOnly: "kedi", type: "fixed_text", result: "Kedide Sabit: 1 cc", freq: "Gerektiğinde", note: "" }
+    ];
+
+    function setSpecies(species) {
+      currentSpecies = species;
+      
+      const btnKedi = document.getElementById('btn-kedi');
+      const btnKopek = document.getElementById('btn-kopek');
+
+      if (species === 'kedi') {
+        btnKedi.className = "species-btn py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2.5 transition-all-custom bg-slate-800 text-white border border-white/20 shadow-lg shadow-black/50";
+        btnKopek.className = "species-btn py-3 px-4 rounded-xl font-medium text-sm flex items-center justify-center gap-2.5 transition-all-custom bg-white/5 text-slate-400 hover:bg-white/10 border border-transparent";
+      } else {
+        btnKopek.className = "species-btn py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2.5 transition-all-custom bg-slate-800 text-white border border-white/20 shadow-lg shadow-black/50";
+        btnKedi.className = "species-btn py-3 px-4 rounded-xl font-medium text-sm flex items-center justify-center gap-2.5 transition-all-custom bg-white/5 text-slate-400 hover:bg-white/10 border border-transparent";
+      }
+
+      renderDrugList();
+      calculate();
+    }
+
+    function setWeightPreset(val) {
+      document.getElementById('weight').value = val;
+      calculate();
+    }
+
+    function adjustWeight(delta) {
+      const input = document.getElementById('weight');
+      let current = parseFloat(input.value) || 0;
+      current = Math.max(0, current + delta);
+      input.value = current.toFixed(2);
+      calculate();
+    }
+
+    function openDrugList() {
+      renderDrugList();
+      document.getElementById('drugDropdown').classList.remove('hidden');
+    }
+
+    function renderDrugList() {
+      const dropdown = document.getElementById('drugDropdown');
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      
+      dropdown.innerHTML = '';
+
+      const filtered = drugs.filter(drug => {
+        const matchesSpecies = !drug.speciesOnly || drug.speciesOnly === currentSpecies;
+        const matchesQuery = drug.name.toLowerCase().includes(query) || drug.category.toLowerCase().includes(query);
+        return matchesSpecies && matchesQuery;
+      });
+
+      filtered.sort((a,b) => a.name.localeCompare(b.name));
+
+      if (filtered.length === 0) {
+        dropdown.innerHTML = `
+          <div class="p-4 text-center text-xs text-slate-500">
+            Aradığınız kritere uygun ilaç bulunamadı.
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach((drug) => {
+        const originalIndex = drugs.indexOf(drug);
+        const isSelected = selectedDrugIndex === originalIndex;
+
+        const card = document.createElement('div');
+        card.onclick = () => selectDrug(originalIndex);
+        card.className = `p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all-custom ${
+          isSelected 
+            ? 'bg-slate-800/90 border-slate-500 shadow-md' 
+            : 'bg-black/30 hover:bg-white/5 border-white/5 hover:border-white/10'
+        }`;
+
+        card.innerHTML = `
+          <div class="font-semibold text-sm text-slate-200">
+            ${drug.name}
+          </div>
+          <span class="text-[11px] font-medium px-2.5 py-1 rounded-xl bg-white/5 text-slate-400 border border-white/5 shrink-0 ml-2">
+            ${drug.category}
+          </span>
+        `;
+
+        dropdown.appendChild(card);
+      });
+    }
+
+    function filterDrugs() {
+      const query = document.getElementById('searchInput').value;
+      const clearBtn = document.getElementById('clearSearch');
+      
+      if (query.length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+
+      openDrugList();
+    }
+
+    function clearSearchInput() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('clearSearch').classList.add('hidden');
+      selectedDrugIndex = null;
+      document.getElementById('resultCard').classList.add('hidden');
+      renderDrugList();
+    }
+
+    function selectDrug(index) {
+      selectedDrugIndex = index;
+      const drug = drugs[index];
+      
+      document.getElementById('searchInput').value = drug.name;
+      document.getElementById('clearSearch').classList.remove('hidden');
+      document.getElementById('drugDropdown').classList.add('hidden');
+
+      calculate();
+    }
+
+    function calculate() {
+      const kg = parseFloat(document.getElementById("weight").value);
+      const resultCard = document.getElementById("resultCard");
+
+      if (isNaN(kg) || kg <= 0 || selectedDrugIndex === null) {
+        resultCard.classList.add("hidden");
+        return;
+      }
+
+      const drug = drugs[selectedDrugIndex];
+      
+      document.getElementById("resCategory").textContent = drug.category;
+      document.getElementById("resDrugName").textContent = drug.name;
+      
+      const freqBox = document.getElementById("resFreqBox");
+      if (drug.freq) {
+        document.getElementById("resFreq").textContent = `Sıklık: ${drug.freq}`;
+        freqBox.classList.remove("hidden");
+      } else {
+        freqBox.classList.add("hidden");
+      }
+
+      let doseText = "";
+
+      if (drug.type === "fixed_text") {
+        doseText = drug.result;
+      } else if (drug.type === "fixed_volume") {
+        doseText = `${(kg * drug.ccPerKg).toFixed(2)} cc / ml`;
+      } else if (drug.type === "custom") {
+        doseText = drug.calc(kg);
+      } else if (drug.type === "species_based") {
+        const targetDose = currentSpecies === 'kedi' ? drug.kedi : drug.kopek;
+        doseText = `${(kg * targetDose).toFixed(2)} mg (${targetDose} mg/kg)`;
+      } else if (drug.doseRange) {
+        doseText = `${(kg * 35).toFixed(1)} mg - ${(kg * 50).toFixed(1)} mg`;
+      } else if (drug.dose) {
+        doseText = `${(kg * drug.dose).toFixed(2)} mg (${drug.dose} ${drug.unit})`;
+      }
+
+      document.getElementById("resDose").textContent = doseText;
+
+      const noteBox = document.getElementById("resNoteBox");
+      if (drug.note) {
+        document.getElementById("resNote").textContent = drug.note;
+        noteBox.classList.remove("hidden");
+      } else {
+        noteBox.classList.add("hidden");
+      }
+
+      resultCard.classList.remove("hidden");
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('drugDropdown');
+      const searchInput = document.getElementById('searchInput');
+      if (!dropdown.contains(e.target) && !searchInput.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    // Init App
+    setSpecies('kedi');
+
+    // Register Service Worker for Offline PWA Support
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        self.addEventListener('install', e => e.waitUntil(caches.open('vetdoz-v2.5').then(c => c.addAll(['./']))));
+        self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+      `;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(blob));
+    }
+  </script>
+</body>
+</html>
